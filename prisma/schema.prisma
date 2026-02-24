@@ -1,0 +1,229 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String        @id @default(cuid())
+  name            String
+  email           String?       @unique
+  passwordHash    String?
+  emailVerified   Boolean       @default(false)
+  phoneNumber     String?       @unique
+  phoneVerified   Boolean       @default(false)
+  profileComplete Boolean       @default(false)
+  avatarUrl       String?
+  role            String        @default("USER")
+  createdAt       DateTime      @default(now())
+  farmProfile     FarmProfile?
+  reviews         Review[]
+  reviewLikes     ReviewLike[]
+  reports         Report[]
+  userBadges      UserBadge[]
+  userPesticides  UserPesticide[]
+  usageLogs       UsageLog[]
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model FarmProfile {
+  id                 String  @id @default(cuid())
+  userId             String  @unique
+  cropCategoryIds    String  // JSON array of CropCategory IDs
+  cropItemIds        String  // JSON array of CropItem IDs
+  primaryCropItemId  String  // Single CropItem ID for default recommendations
+  prefCode           String  // Prefecture code e.g. "13" for Tokyo
+  areaQuadrant       String  // north | east | central | west
+  areaScale          String
+  user               User    @relation(fields: [userId], references: [id])
+}
+
+model CropCategory {
+  id    String     @id
+  name  String     @unique
+  items CropItem[]
+}
+
+model CropItem {
+  id         String       @id
+  categoryId String
+  nameJa     String
+  synonyms   String?      // JSON array of synonyms for search
+  category   CropCategory @relation(fields: [categoryId], references: [id])
+}
+
+model Pesticide {
+  id                 String   @id @default(cuid())
+  name               String
+  maker              String?
+  category           String?
+  specSummary        String?
+  externalSource     String?
+  externalId         String?
+  cropAffinityJson   String?
+  regionAffinityJson String?
+  seasonAffinityJson String?
+  createdAt          DateTime @default(now())
+  reviews            Review[]
+  userPesticides     UserPesticide[]
+  usageLogs          UsageLog[]
+}
+
+model Review {
+  id          String        @id @default(cuid())
+  userId      String
+  pesticideId String
+  rating      Int
+  body        String
+  season      String        @default("")
+  locationLat Float         @default(0)
+  locationLng Float         @default(0)
+  areaCode    String?
+  
+  // Snapshots of the user's farm profile at time of review
+  capturedMainCrop  String?
+  capturedAreaScale String?
+  capturedRegion    String?
+  capturedCityCode  String?
+  
+  visibility  String        @default("PUBLIC")
+  isDraft     Boolean       @default(false)
+  isHidden    Boolean       @default(false)
+  isPickedUp  Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id])
+  pesticide   Pesticide     @relation(fields: [pesticideId], references: [id])
+  photos      ReviewPhoto[]
+  likes       ReviewLike[]
+  reports     Report[]
+}
+
+model ReviewPhoto {
+  id       String @id @default(cuid())
+  reviewId String
+  url      String
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+}
+
+model ReviewLike {
+  id       String @id @default(cuid())
+  reviewId String
+  userId   String
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id])
+
+  @@unique([reviewId, userId])
+}
+
+model Report {
+  id             String   @id @default(cuid())
+  reviewId       String
+  reporterUserId String
+  reason         String
+  detail         String?
+  status         String   @default("PENDING")
+  createdAt      DateTime @default(now())
+  review         Review   @relation(fields: [reviewId], references: [id])
+  reporter       User     @relation(fields: [reporterUserId], references: [id])
+}
+
+model Badge {
+  id          String      @id @default(cuid())
+  key         String      @unique
+  name        String
+  description String
+  iconEmoji   String
+  userBadges  UserBadge[]
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+  badge    Badge    @relation(fields: [badgeId], references: [id])
+
+  @@unique([userId, badgeId])
+}
+
+model UserPesticide {
+  id             String    @id @default(cuid())
+  userId         String
+  pesticideId    String
+  acquiredAt     DateTime  @default(now())
+  note           String?
+  photoUrl       String?
+  lastUsedSeason String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id])
+  pesticide      Pesticide @relation(fields: [pesticideId], references: [id])
+
+  @@unique([userId, pesticideId])
+}
+
+model UsageLog {
+  id          String    @id @default(cuid())
+  userId      String
+  pesticideId String
+  date        DateTime  @default(now())
+  note        String
+  rating      Int?
+  areaCode    String?
+  cropType    String?
+  visibility  String    @default("PRIVATE")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id])
+  pesticide   Pesticide @relation(fields: [pesticideId], references: [id])
+}
+
+// ============================================================
+// MAFF 公式農薬登録データ
+// ============================================================
+
+model MaffPesticide {
+  id               String   @id @default(cuid())
+  regNumber        String   @unique
+  pesticideType    String   // 農薬の種類
+  name             String   // 農薬の名称
+  company          String   // 登録を有する者の名称
+  activeIngredient String   // 有効成分
+  purpose          String   // 用途（殺虫剤/殺菌剤/除草剤...）
+  formulation      String   // 剤型名
+  regDate          String   // 登録年月日
+  applications     MaffApplication[]
+}
+
+model MaffApplication {
+  id           String  @id @default(cuid())
+  regNumber    String
+  cropName     String  // 作物名
+  pestName     String  // 適用病害虫雑草名
+  dilution     String  // 希釈倍数使用量
+  sprayVolume  String  // 散布液量
+  timing       String  // 使用時期
+  method       String  // 使用方法
+  usageCount   String  // 本剤の使用回数
+  purpose      String  // 用途
+  pesticide    MaffPesticide @relation(fields: [regNumber], references: [regNumber])
+
+  @@index([cropName])
+  @@index([pestName])
+  @@index([regNumber])
+}
