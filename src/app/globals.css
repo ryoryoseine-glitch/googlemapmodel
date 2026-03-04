@@ -526,6 +526,116 @@ textarea.form-input {
     margin-left: -12px;
     margin-right: -12px;
   }
+
+  /* ===== Header nav: hide desktop links, rely on bottom nav ===== */
+  nav .container-wide>div:last-child>div {
+    gap: 4px !important;
+  }
+
+  nav .nav-link {
+    font-size: 0.75rem !important;
+    padding: 4px 6px !important;
+  }
+
+  /* ===== Pesticide detail page: header card ===== */
+  /* Stack header: info + action buttons vertically */
+  .container-wide>.card:first-child>div:first-child {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  /* Pesticide name smaller on mobile */
+  .container-wide>.card:first-child h1 {
+    font-size: 1.15rem !important;
+  }
+
+  /* Rating + distribution: vertical stack */
+  .container-wide>.card:first-child>div:last-child {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* ===== Sort buttons: horizontal scroll ===== */
+  .container-wide>div:nth-child(2) {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px !important;
+  }
+
+  .container-wide>div:nth-child(2) h2 {
+    font-size: 1rem !important;
+    white-space: nowrap;
+  }
+
+  .container-wide>div:nth-child(2)>div:last-child {
+    flex-wrap: nowrap !important;
+    flex-shrink: 0;
+  }
+
+  .btn-ghost {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ===== Review cards: optimize for touch ===== */
+  .review-card {
+    padding: 14px 12px !important;
+  }
+
+  /* Like button: full width on mobile for easier tapping */
+  .review-card .action-btn {
+    font-size: 0.72rem;
+    padding: 5px 10px;
+  }
+
+  /* Review body text: smaller on mobile */
+  .review-card>p {
+    font-size: 0.88rem !important;
+  }
+
+  /* Review images: taller for mobile viewing */
+  .review-card img {
+    max-height: 220px !important;
+    border-radius: 8px !important;
+  }
+
+  /* ===== Home page: main grid stacking ===== */
+  .home-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  /* Recommendation cards: single column on small phones */
+  .home-grid>div>section>div:last-child {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Sidebar: unstick on mobile */
+  .home-grid aside .card {
+    position: static !important;
+  }
+
+  /* Hero section: smaller text */
+  .container-wide>div:first-child h1 {
+    font-size: 1.4rem !important;
+  }
+
+  .container-wide>div:first-child p {
+    font-size: 0.85rem !important;
+  }
+
+  /* Avatar slightly smaller */
+  .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  /* Empty review state: less padding */
+  .card>div[style*="padding: 80px"] {
+    padding: 40px 16px !important;
+  }
 }
 
 /* Ensure mobile-nav spacer */
