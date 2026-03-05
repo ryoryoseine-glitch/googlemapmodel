@@ -176,27 +176,55 @@ export default function OnboardingPage() {
                         {/* ===== SECTION 2: Crop Category ===== */}
                         <section>
                             <h2 style={sectionTitle}>🌽 作物カテゴリ（複数選択可）</h2>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                                {categories.map(cat => (
-                                    <button
-                                        key={cat.id}
-                                        type="button"
-                                        onClick={() => toggleCategory(cat.id)}
-                                        style={{
-                                            padding: "8px 16px", borderRadius: 100, border: "1.5px solid",
-                                            cursor: "pointer", fontSize: "0.85rem", fontWeight: 600,
-                                            transition: "all 0.15s",
-                                            ...(selectedCatIds.includes(cat.id)
-                                                ? { background: "var(--primary)", color: "white", borderColor: "var(--primary)" }
-                                                : { background: "white", color: "#374151", borderColor: "#d1d5db" }
-                                            ),
-                                        }}
-                                    >
-                                        {cat.name}
-                                        <span style={{ fontSize: "0.7rem", opacity: 0.7, marginLeft: 4 }}>({cat._count.items})</span>
-                                    </button>
-                                ))}
-                            </div>
+                            <p style={{ fontSize: "0.8rem", color: "var(--muted)", marginBottom: 12 }}>
+                                栽培しているカテゴリを選ぶと、具体的な品目が絞り込まれます
+                            </p>
+                            {categories.length === 0 ? (
+                                <div style={{ color: "var(--muted)", fontSize: "0.85rem", padding: "16px 0" }}>
+                                    読み込み中...
+                                </div>
+                            ) : (
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
+                                    {categories.map(cat => {
+                                        const icons: Record<string, string> = {
+                                            "露地野菜": "🥬", "施設園芸": "🏡", "果樹": "🍊",
+                                            "水稲": "🌾", "畑作": "🌽", "茶": "🍵",
+                                            "花き": "🌸", "その他": "🌿",
+                                        };
+                                        const icon = icons[cat.name] ?? "🌱";
+                                        const isSelected = selectedCatIds.includes(cat.id);
+                                        return (
+                                            <button
+                                                key={cat.id}
+                                                type="button"
+                                                onClick={() => toggleCategory(cat.id)}
+                                                style={{
+                                                    padding: "12px 10px",
+                                                    borderRadius: 12,
+                                                    border: "2px solid",
+                                                    cursor: "pointer",
+                                                    fontSize: "0.85rem",
+                                                    fontWeight: 600,
+                                                    textAlign: "center",
+                                                    transition: "all 0.15s",
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    alignItems: "center",
+                                                    gap: 4,
+                                                    ...(isSelected
+                                                        ? { background: "var(--primary)", color: "white", borderColor: "var(--primary)", boxShadow: "0 2px 8px rgba(45,106,79,0.25)" }
+                                                        : { background: "white", color: "#374151", borderColor: "#d1d5db" }
+                                                    ),
+                                                }}
+                                            >
+                                                <span style={{ fontSize: "1.5rem" }}>{icon}</span>
+                                                <span>{cat.name}</span>
+                                                <span style={{ fontSize: "0.7rem", opacity: 0.7 }}>{cat._count.items}品目</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </section>
 
                         {/* ===== SECTION 3: Crop Items ===== */}
