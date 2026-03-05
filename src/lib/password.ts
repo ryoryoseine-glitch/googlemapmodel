@@ -1,25 +1,33 @@
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
+import { scrypt, ScryptOptions, randomBytes, timingSafeEqual } from "crypto";
 
-const scryptAsync = promisify(scrypt);
+// Use lower cost params so hashing completes within Vercel's 10s timeout.
+const SCRYPT_PARAMS: ScryptOptions = { N: 16384, r: 8, p: 1 };
+const KEY_LEN = 64;
 
-/**
- * Hash a password using Node.js crypto.scrypt (no external deps).
- * Format: salt:hash (both hex-encoded)
- */
+function scryptAsync(password: string, salt: string, keylen: number, options: ScryptOptions): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+        scrypt(password, salt, keylen, options, (err, derived) => {
+            if (err) reject(err);
+            else resolve(derived);
+        });
+    });
+}
+
 export async function hashPassword(password: string): Promise<string> {
     const salt = randomBytes(16).toString("hex");
-    const derived = (await scryptAsync(password, salt, 64)) as Buffer;
+    const derived = await scryptAsync(password, salt, KEY_LEN, SCRYPT_PARAMS);
     return `${salt}:${derived.toString("hex")}`;
 }
 
-/**
- * Verify a password against a stored hash.
- */
 export async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
     const [salt, hash] = storedHash.split(":");
     if (!salt || !hash) return false;
-    const derived = (await scryptAsync(password, salt, 64)) as Buffer;
-    const hashBuffer = Buffer.from(hash, "hex");
-    return timingSafeEqual(derived, hashBuffer);
+    try {
+        const derived = await scryptAsync(password, salt, KEY_LEN, SCRYPT_PARAMS);
+        const hashBuffer = Buffer.from(hash, "hex");
+        if (derived.length !== hashBuffer.length) return false;
+        return timingSafeEqual(derived, hashBuffer);
+    } catch {
+        return false;
+    }
 }
