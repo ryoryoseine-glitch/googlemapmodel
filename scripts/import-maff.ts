@@ -1,5 +1,5 @@
 /**
- * Import MAFF pesticide registration data from CSV files into SQLite.
+ * Import MAFF pesticide registration data from CSV files into PostgreSQL.
  * 
  * Usage: npx tsx scripts/import-maff.ts
  * 
@@ -9,6 +9,7 @@
  *   - R0802042.csv (application data part 2)
  */
 
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import * as fs from "fs";
 import * as path from "path";
